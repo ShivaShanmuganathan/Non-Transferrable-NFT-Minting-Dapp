@@ -1,7 +1,7 @@
 Moralis.initialize(""); // Application id from moralis.io
 Moralis.serverURL = ""; //Server url from moralis.io
 
-const nft_contract_address = "" //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
+const nft_contract_address = "0x966bd5c1bc7abd5e865968ae87e21492139c4fd8" //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
 /*
 Available deployed contracts
 Ethereum Rinkeby 0x0Fb6EF3505b9c52Ed39595433a21aF9B5FCc4431
@@ -25,6 +25,7 @@ async function login(){
       document.getElementById("file").removeAttribute("disabled");
       document.getElementById("name").removeAttribute("disabled");
       document.getElementById("description").removeAttribute("disabled");
+      document.getElementById("recipient").removeAttribute("disabled");
   })
 }
 
@@ -36,7 +37,10 @@ async function upload(){
   document.getElementById('file').setAttribute("disabled", null);
   document.getElementById('name').setAttribute("disabled", null);
   document.getElementById('description').setAttribute("disabled", null);
+  document.getElementById('recipient').setAttribute("disabled", null);
   await imageFile.saveIPFS();
+  const recipient = document.getElementById('recipient').value;
+  console.log(recipient);
   const imageURI = imageFile.ipfs();
   const metadata = {
     "name":document.getElementById("name").value,
@@ -46,18 +50,25 @@ async function upload(){
   const metadataFile = new Moralis.File("metadata.json", {base64 : btoa(JSON.stringify(metadata))});
   await metadataFile.saveIPFS();
   const metadataURI = metadataFile.ipfs();
-  const txt = await mintToken(metadataURI).then(notify)
+  const txt = await mintNFT(recipient, metadataURI).then(notify)
+  
 }
 
-async function mintToken(_uri){
+async function mintNFT(_recipient,_uri){
   const encodedFunction = web3.eth.abi.encodeFunctionCall({
-    name: "mintToken",
+    name: "mintNFT",
     type: "function",
-    inputs: [{
+    inputs: [
+      {
+        type: 'address',
+        name: 'recipient'
+      },
+      {
       type: 'string',
       name: 'tokenURI'
-      }]
-  }, [_uri]);
+      }      
+    ]
+  }, [_recipient,_uri]);
 
   const transactionParameters = {
     to: nft_contract_address,
@@ -75,4 +86,3 @@ async function notify(_txt){
   document.getElementById("resultSpace").innerHTML =  
   `<input disabled = "true" id="result" type="text" class="form-control" placeholder="Description" aria-label="URL" aria-describedby="basic-addon1" value="Your NFT was minted in transaction ${_txt}">`;
 } 
-
