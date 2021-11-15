@@ -1,5 +1,8 @@
-Moralis.initialize(""); // Application id from moralis.io
-Moralis.serverURL = ""; //Server url from moralis.io
+const appId = "9qKVHK6woWbvX3jjtK3aLzAi7pRpRxJEfm6N9vha";
+const serverUrl = "https://b8ajgglzcaf4.usemoralis.com:2053/server";
+
+      // gives access to the Moralis.Web3API
+      Moralis.start({serverUrl, appId});
 
 const nft_contract_address = "0x966bd5c1bc7abd5e865968ae87e21492139c4fd8" //NFT Minting Contract Use This One "Batteries Included", code of this contract is in the github repository under contract_base for your reference.
 /*
@@ -26,6 +29,8 @@ async function login(){
       document.getElementById("name").removeAttribute("disabled");
       document.getElementById("description").removeAttribute("disabled");
       document.getElementById("recipient").removeAttribute("disabled");
+
+      showMyNFTs();
   })
 }
 
@@ -86,3 +91,32 @@ async function notify(_txt){
   document.getElementById("resultSpace").innerHTML =  
   `<input disabled = "true" id="result" type="text" class="form-control" placeholder="Description" aria-label="URL" aria-describedby="basic-addon1" value="Your NFT was minted in transaction ${_txt}">`;
 } 
+
+async function showMyNFTs(){
+    const options = { chain: 'rinkeby',address: ethereum.selectedAddress, token_address: nft_contract_address};
+    const myNfts = await Moralis.Web3API.account.getNFTsForContract(options);
+    console.log(myNfts);
+    console.log(myNfts.result);
+  
+    myNfts.result.forEach(nft => {
+      renderImage(nft.token_uri);
+    })
+
+
+}
+
+async function renderImage(token_uri) {
+  console.log(token_uri);
+    let uriResponse = await fetch(token_uri);
+    let uriToJson = await uriResponse.json();
+    console.log(uriToJson.image);
+
+    let image_url = uriToJson.image.toString();
+
+    let img = document.createElement('img');
+    img.style.cssText = 'width:100px; height: 100px;';
+    img.src = image_url;
+
+    document.getElementById('my_nfts_display').append(img);
+
+}
